@@ -1,0 +1,9 @@
+app traffic_controller {
+	//on all Actor0;
+	on (10.0.0.1) Actor0;
+	on (10.0.0.2) Actor1;
+	on (10.0.0.3) Actor2;
+	on (10.0.0.4) Actor3;
+    on (10.0.0.1) Logger;
+  //on (192.168.0.110) Logger;
+}

@@ -1,0 +1,98 @@
+// RIAPS Sample
+
+app traffic_controller {
+	// Message types used in the app
+    message ICDensityMsg; 
+    message gameLightStateMsg;
+    //message setLightReq;
+    //message setLightRep;
+    message setLightMsg;
+    message gameDensityMsg;
+    message setLightStatusMsg;
+    message lightLogMsg; //message picked up by logger
+    
+	// Intersection Controller component. Should probably say what Ts is.
+    component IC (parent="none"){
+      timer clock 1000; 						// Periodic timer trigger to trigger density reading every 1 sec
+      sub densityPort : gameDensityMsg;				// sub port for densityMsg messages 
+      sub lightPort : gameLightStateMsg;		// sub port for messages regarding the state of the traffic lights
+      pub pubICPort : ICDensityMsg;
+      //sub subICPort : ICDensityMsg;					// Subscriber port to receive density messages.
+      pub setLightsPort : setLightMsg;
+      //req setLightsPort : (setLightReq, setLightRep);
+      sub setLightStatus : setLightStatusMsg;
+      pub pubLightLog : lightLogMsg;
+    }
+    
+    device LightIF(rate=10, gameServerIP="localhost", parent="none") {
+    	
+    	inside trigger /* default */; 	// Inside port for triggering an op by a message coming from an internal thread.
+      								// The 'default' is optional, it implies a 1 sec timer/ticker thread.
+		timer clock 1000;  //Timer to get the light state after the value specified milliseconds.
+ 		pub lightPort : gameLightStateMsg;
+ 		//rep setLightsPort : (setLightReq, setLightRep);
+ 		sub setLightsPort : setLightMsg;
+ 		pub setLightStatus : setLightStatusMsg;
+    }
+    
+    device DensitySensor(rate=10, gameServerIP="localhost", parent="none") {
+    	inside trigger /* default */; 	// Inside port for triggering an op by a message coming from an internal thread.
+      								// The 'default' is optional, it implies a 1 sec timer/ticker thread.
+    	timer clock 1000;  //Timer to get the density after the value specified milliseconds.
+    	pub densityPort : gameDensityMsg;
+    }
+    
+    component Logger {
+    	timer clock 1000;
+    	sub subICPort : ICDensityMsg;	
+    	sub subLightLog : lightLogMsg;
+    }
+    
+    
+    // IC actor
+    actor Logger {
+    	{
+	    	log : Logger;
+    	}
+    }
+    
+    actor Actor0 {
+       //local gameDensityMsg, gameLightStateMsg, setLightReq, setLightRep;	// Local message types
+       local gameDensityMsg, gameLightStateMsg, setLightMsg, setLightStatusMsg;	// Local message types
+       {
+          ic : IC(parent="Actor0");						// Intersection Controller
+          lIF : LightIF(rate=2, gameServerIP="192.168.0.102", parent="Actor0");			// Component interfacing with the game to get light state
+          dsnsr : DensitySensor(rate=2, gameServerIP="192.168.0.102", parent="Actor0");		// Component interfacing with the game to get density
+          
+       }
+    }
+    actor Actor1 {
+    	
+        local gameDensityMsg, gameLightStateMsg, setLightMsg, setLightStatusMsg;	// Local message types
+        {
+        	ic : IC(parent="Actor1");						// Intersection Controller
+        	lIF : LightIF(rate=2, gameServerIP="192.168.0.102", parent="Actor1");			// Component interfacing with the game to get light state
+        	dsnsr : DensitySensor(rate=2, gameServerIP="192.168.0.102", parent="Actor1");		// Component interfacing with the game to get density
+        }
+    }
+    
+    actor Actor2 {
+    	
+        local gameDensityMsg, gameLightStateMsg, setLightMsg, setLightStatusMsg;	// Local message types
+        {
+        	ic : IC(parent="Actor2");						// Intersection Controller
+        	lIF : LightIF(rate=2, gameServerIP="192.168.0.102", parent="Actor2");			// Component interfacing with the game to get light state
+        	dsnsr : DensitySensor(rate=2, gameServerIP="192.168.0.102", parent="Actor2");		// Component interfacing with the game to get density
+        }
+    }
+    
+    actor Actor3 {
+    	
+        local gameDensityMsg, gameLightStateMsg, setLightMsg, setLightStatusMsg;	// Local message types
+        {
+        	ic : IC(parent="Actor3");						// Intersection Controller
+        	lIF : LightIF(rate=2, gameServerIP="192.168.0.102", parent="Actor3");			// Component interfacing with the game to get light state
+        	dsnsr : DensitySensor(rate=2, gameServerIP="192.168.0.102", parent="Actor3");		// Component interfacing with the game to get density
+        }
+    }
+}
